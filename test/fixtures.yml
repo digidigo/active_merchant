@@ -1302,6 +1302,9 @@ world_net:
   terminal_id: '6001'
   secret: 'sandboxEUR'
 
+world_net_v2:
+  merchant_api_key: MERCHANT API KEY GOES HERE
+
 world_pay_gateway:
   login: 'SPREEDLY'
   password: 'KZ#P2aR+'
