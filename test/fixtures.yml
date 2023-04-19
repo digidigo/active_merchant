@@ -381,6 +381,9 @@ flo2cash_simple:
   password: ANOTHERCREDENTIAL
   account_id: ANOTHERCREDENTIAL
 
+fluidpay:
+  api_key: SOMECREDENTIAL
+
 forte:
   location_id: "176008"
   account_id: "300111"
