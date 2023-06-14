@@ -12,9 +12,9 @@
 #
 
 adyen:
-  username: ''
-  password: ''
-  merchant_account: ''
+  username: ""
+  password: ""
+  merchant_account: ""
 
 airwallex:
   client_id: SOMECREDENTIAL
@@ -42,7 +42,7 @@ axcessms:
 
 # Working credentials, no need to replace
 balanced:
-  login: 'e1c5ad38d1c711e1b36c026ba7e239a9'
+  login: "e1c5ad38d1c711e1b36c026ba7e239a9"
 
 bambora_apac:
   username: nmi.api
@@ -87,16 +87,16 @@ beanstream_interac:
   password: password
 
 bit_pay:
-  api_key: 'rKrahSl7WRrYeKRUhGzbvW3nBzo0jG4FPaL8uPYaoPk'
+  api_key: "rKrahSl7WRrYeKRUhGzbvW3nBzo0jG4FPaL8uPYaoPk"
 
 blue_pay:
-  login: '100096218902'
-  password: 'MBUVE4G1BACMFM4W3XQHUUL2SMQRP.LW'
+  login: "100096218902"
+  password: "MBUVE4G1BACMFM4W3XQHUUL2SMQRP.LW"
 
 # Working credentials, no need to replace
 blue_snap:
-  api_username: 'API_146117371665767340423'
-  api_password: 'nfYwTx8fFAvJqBXcxqwC8'
+  api_username: "API_146117371665767340423"
+  api_password: "nfYwTx8fFAvJqBXcxqwC8"
 
 borgun:
   processor: 118
@@ -105,10 +105,10 @@ borgun:
   password: Qxi.34k
 
 bpoint:
-  username: 'A'
-  password: 'B'
-  merchant_number: 'C'
-  biller_code: ''
+  username: "A"
+  password: "B"
+  merchant_number: "C"
+  biller_code: ""
 
 braintree_blue:
   merchant_id: X
@@ -169,10 +169,10 @@ cardprocess:
 
 # Cashnet doesn't provide public testing data
 cashnet:
-  merchant: 'X'
-  operator: 'X'
-  password: 'X'
-  merchant_gateway_name: 'X'
+  merchant: "X"
+  operator: "X"
+  password: "X"
+  merchant_gateway_name: "X"
 
 cecabank:
   merchant_id: MERCHANTID
@@ -243,20 +243,20 @@ conekta:
 
 # Working credentials, no need to replace
 creditcall:
-  terminal_id: '99961426'
-  transaction_key: '9drdRU9wJ65SNRw3'
+  terminal_id: "99961426"
+  transaction_key: "9drdRU9wJ65SNRw3"
 
 # NOTE: the IP address you run the remote tests from will need to be
 # whitelisted by Credorax; contact support@credorax.com as necessary to request
 # your IP address be added to the whitelist for your test account.
 credorax:
-  merchant_id: 'merchant_id'
-  cipher_key: 'cipher_key'
+  merchant_id: "merchant_id"
+  cipher_key: "cipher_key"
 
 ct_payment:
   api_key: SOMECREDENTIAL
-  company_number: '12345'
-  merchant_number: '12345678'
+  company_number: "12345"
+  merchant_number: "12345678"
 
 # Culqi does not provide public testing data
 culqi:
@@ -362,12 +362,12 @@ evo_ca:
 
 # Working credentials, no need to replace
 eway:
-  login: '87654321'
+  login: "87654321"
 
 eway_managed:
-  login: '87654321'
-  username: 'test@eway.com.au'
-  password: 'test123'
+  login: "87654321"
+  username: "test@eway.com.au"
+  password: "test123"
 
 eway_rapid:
   login: LOGIN
@@ -397,8 +397,8 @@ finansbank:
   client_id: 600100000
 
 first_giving:
-  application_key: ''
-  security_token:  ''
+  application_key: ""
+  security_token: ""
   charity_id: "1234"
 
 first_pay:
@@ -485,8 +485,8 @@ ipp:
   password: qwerty123
 
 iridium:
-    login: LOGIN
-    password: PASSWORD
+  login: LOGIN
+  password: PASSWORD
 
 itransact:
   login: API_ACCESS_USERNAME
@@ -547,8 +547,8 @@ merchant_esolutions:
   password: "gvQzgKXOTEoDzpzJzROrQQzoKLaEqxjf"
 
 merchant_one:
-  username: 'demo'
-  password: 'password'
+  username: "demo"
+  password: "password"
 
 # Working credentials, no need to replace
 merchant_partners:
@@ -556,34 +556,34 @@ merchant_partners:
   merchant_pin: "1234567890"
 
 merchant_ware:
- login:
- password:
- name:
+  login:
+  password:
+  name:
 
 # Working credentials, no need to replace
 merchant_ware_version_four:
- login: 'BK34Z768'
- password: 'TCTTS-IDYQV-RDFY1-6DS01-WTPVH'
- name: 'Test Spreedly PayItSimple'
+  login: "BK34Z768"
+  password: "TCTTS-IDYQV-RDFY1-6DS01-WTPVH"
+  name: "Test Spreedly PayItSimple"
 
 merchant_warrior:
-  merchant_uuid: '50c5b9f0b52ea'
-  api_key: '8fr3ajm7'
-  api_passphrase: 'cymvlwgc'
+  merchant_uuid: "50c5b9f0b52ea"
+  api_key: "8fr3ajm7"
+  api_passphrase: "cymvlwgc"
 
 # Working credentials, no need to replace
 mercury:
-  login: '089716741701445'
-  password: 'xyz'
+  login: "089716741701445"
+  password: "xyz"
 
 mercury_no_tokenization:
-  login: '595901'
-  password: 'xyz'
+  login: "595901"
+  password: "xyz"
   tokenization: false
 
 metrics_global:
-  login: 'demo'
-  password: 'password'
+  login: "demo"
+  password: "password"
 
 micropayment:
   access_key: "0b4832ca37a31e748c4490b58d743986"
@@ -591,8 +591,8 @@ micropayment:
 # Working credentials, no need to replace
 migs:
   login: TESTH-STATION
-  password: 'F1CE6F32'
-  secure_hash: 'D8CF972645E69EA15A7D6005059E18DF'
+  password: "F1CE6F32"
+  secure_hash: "D8CF972645E69EA15A7D6005059E18DF"
   advanced_login: activemerchant
   advanced_password: test12345
 
@@ -662,7 +662,7 @@ netbanx:
 # Working credentials, no need to replace
 # Contact Netbilling for login info to the admin area
 netbilling:
-  login: '104901072025'
+  login: "104901072025"
 
 netpay:
   store_id: 14
@@ -690,16 +690,16 @@ ogone:
 omise:
   public_key: pkey_test_4zt0fss8gs0z6b4zlsq
   secret_key: skey_test_4zt0fss8eklsj88dx9l
-  api_version: '2015-11-17'
+  api_version: "2015-11-17"
 
 # Working credentials, no need to replace
 openpay:
-  key: 'sk_e568c42a6c384b7ab02cd47d2e407cab'
-  merchant_id: 'mzdtln0bmtms6o3kck8f'
+  key: "sk_e568c42a6c384b7ab02cd47d2e407cab"
+  merchant_id: "mzdtln0bmtms6o3kck8f"
 
 opp:
-  access_token: 'OGE4Mjk0MTc0YjdlY2IyODAxNGI5Njk5MjIwMDE1Y2N8c3k2S0pzVDg='
-  entity_id: '8a8294174d0a8edd014d242337942575'
+  access_token: "OGE4Mjk0MTc0YjdlY2IyODAxNGI5Njk5MjIwMDE1Y2N8c3k2S0pzVDg="
+  entity_id: "8a8294174d0a8edd014d242337942575"
 
 optimal_payment:
   store_id: test
@@ -718,7 +718,7 @@ orbital_tandem_gateway:
 
 # Working credentials, no need to replace
 pagarme:
-    api_key: 'ak_test_e1QGU2gL98MDCHZxHLJ9sofPUFJ7tH'
+  api_key: "ak_test_e1QGU2gL98MDCHZxHLJ9sofPUFJ7tH"
 
 # Working credentials, no need to replace
 pago_facil:
@@ -732,31 +732,31 @@ pay_arc:
 
 # Working credentials, no need to replace
 pay_conex:
-  account_id: '220614968961'
-  api_accesskey: '69e9c4dd6b8ab9ab47da4e288df78315'
+  account_id: "220614968961"
+  api_accesskey: "69e9c4dd6b8ab9ab47da4e288df78315"
 
 # Working credentials, no need to replace
 pay_gate_xml:
-  login: '10011021600'
-  password: 'test'
+  login: "10011021600"
+  password: "test"
 
 # Working credentials, no need to replace
 pay_hub:
-  orgid: '123456'
-  username: 'abc123DEF'
-  password: 'abc123DEF'
-  tid: '123'
+  orgid: "123456"
+  username: "abc123DEF"
+  password: "abc123DEF"
+  tid: "123"
 
 # Working credentials, no need to replace
 pay_junction:
-  login: 'pj-ql-01'
-  password: 'pj-ql-01p'
+  login: "pj-ql-01"
+  password: "pj-ql-01p"
 
 # Working credentials, no need to replace
 pay_junction_v2:
-  api_login: 'pj-ql-01'
-  api_password: 'pj-ql-01p'
-  api_key: ''
+  api_login: "pj-ql-01"
+  api_password: "pj-ql-01p"
+  api_key: ""
 
 pay_secure:
   login: LOGIN
@@ -790,9 +790,9 @@ payex:
 
 # Working credentials, no need to replace
 payflow:
-  login: 'spreedlyIntegrations'
-  password: 'L9DjqEKjXCkU'
-  partner: 'PayPal'
+  login: "spreedlyIntegrations"
+  password: "L9DjqEKjXCkU"
+  partner: "PayPal"
 
 payflow_uk:
   login: LOGIN
@@ -1144,78 +1144,78 @@ realex:
   password: Y
 
 realex_mastercard:
-  number: '5425230000004415'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
-  brand: 'master'
+  number: "5425230000004415"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
+  brand: "master"
 
 realex_mastercard_coms_error:
-  number: '5135020000005871'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
-  brand: 'master'
+  number: "5135020000005871"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
+  brand: "master"
 
 realex_mastercard_declined:
-  number: '5114610000004778'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
-  brand: 'master'
+  number: "5114610000004778"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
+  brand: "master"
 
 realex_mastercard_referral_a:
-  number: '5121220000006921'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
-  brand: 'master'
+  number: "5121220000006921"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
+  brand: "master"
 
 realex_mastercard_referral_b:
-  number: '5114630000009791'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
-  brand: 'master'
+  number: "5114630000009791"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
+  brand: "master"
 
 # Realex doesn't provide public testing data
 # Fill in the card numbers with the Realex test
 # data.
 realex_visa:
-  number: '4263970000005262'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
+  number: "4263970000005262"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
 
 realex_visa_3ds_enrolled:
-  number: '4012001037141112'
-  month: '9'
-  year: '2021'
-  verification_value: '123'
+  number: "4012001037141112"
+  month: "9"
+  year: "2021"
+  verification_value: "123"
 
 realex_visa_coms_error:
-  number: '4009830000001985'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
+  number: "4009830000001985"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
 
 realex_visa_declined:
-  number: '4000120000001154'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
+  number: "4000120000001154"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
 
 realex_visa_referral_a:
-  number: '4000160000004147'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
+  number: "4000160000004147"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
 
 realex_visa_referral_b:
-  number: '4000130000001724'
-  month: '6'
-  year: '2020'
-  verification_value: '123'
+  number: "4000130000001724"
+  month: "6"
+  year: "2020"
+  verification_value: "123"
 
 realex_with_account:
   login: X
@@ -1229,7 +1229,7 @@ redsys:
 redsys_sha256:
   login: MERCHANT CODE
   secret_key: SECRET KEY
-  signature_algorithm: 'sha256'
+  signature_algorithm: "sha256"
 
 # Working credentials, no need to replace
 s5:
@@ -1241,16 +1241,16 @@ s5:
 
 # Working credentials, no need to replace
 safe_charge:
-  client_login_id: 'SpreedlyTestTRX'
-  client_password: '5Jp5xKmgqY'
+  client_login_id: "SpreedlyTestTRX"
+  client_password: "5Jp5xKmgqY"
 
 safe_charge_three_ds:
-  client_login_id: 'SpreedlyManTestTRX'
-  client_password: 'iGx9DQQHQG'
+  client_login_id: "SpreedlyManTestTRX"
+  client_password: "iGx9DQQHQG"
 
 sage:
   login: 214282982451
-  password: 'Z5W2S8J7X8T5'
+  password: "Z5W2S8J7X8T5"
 
 sage_pay:
   login: spreedly
@@ -1367,13 +1367,13 @@ trexle:
 
 # Working credentials, no need to replace
 trust_commerce:
-  login: 'TestMerchant'
-  password: 'password'
-  aggregator_id: 'abc123'
+  login: "TestMerchant"
+  password: "password"
+  aggregator_id: "abc123"
 
 # Working credentials, no need to replace
 usa_epay:
-  login: '4EoZ5U2Q55j976W7eplC71i6b7kn4pcV'
+  login: "4EoZ5U2Q55j976W7eplC71i6b7kn4pcV"
 
 # Get credentials here: https://www.usaepay.com/developer/login
 usa_epay_advanced:
@@ -1393,8 +1393,8 @@ vanco:
 
 # Working credentials, no need to replace
 verify:
-  login: 'demo'
-  password: 'password'
+  login: "demo"
+  password: "password"
 
 viaklix:
   login: LOGIN
@@ -1406,7 +1406,14 @@ visanet_peru:
   access_key_id: "AKIAJLJTVQYHO4P76YYA"
   secret_access_key: "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"
   merchant_id: "543025501"
-  ruc: '20341198217'
+  ruc: "20341198217"
+
+vpos:
+  public_key: SOMECREDENTIAL
+  private_key: ANOTHERCREDENTIAL
+  encryption_key: "-----BEGIN PUBLIC KEY-----\n ..."
+  commerce: 123
+  commerce_branch: 45
 
 vpos:
   public_key: SOMECREDENTIAL
@@ -1433,7 +1440,7 @@ wirecard:
 
 wirecard_checkout_page:
   secret: B8AKTPWBRMNBV455FG6M2DANE99WU2
-  shop_id: ''
+  shop_id: ""
   paymenttype: IDL
 
 wompi:
@@ -1442,16 +1449,19 @@ wompi:
 
 # Working credentials, no need to replace
 world_net:
-  terminal_id: '6001'
-  secret: 'sandboxEUR'
+  terminal_id: "6001"
+  secret: "sandboxEUR"
+
+pathly:
+  merchant_api_key: 246f92a1950b99a2d7094cc18acd379150352eaccbe26a0d7a47f71a5b2e2abccc6c00a413d442110532e7c7036428367e3241607ddae4554e089606adf83e34
 
 world_pay_gateway:
-  login: 'SPREEDLY'
-  password: 'KZ#P2aR+'
+  login: "SPREEDLY"
+  password: "KZ#P2aR+"
 
 world_pay_gateway_cft:
-  login: 'SPREEDLYCFT'
-  password: 'Xbf+6#pD'
+  login: "SPREEDLYCFT"
+  password: "Xbf+6#pD"
 
 worldpay_online_payments:
   client_key: "T_C_b9f629e7-cea7-4edb-8206-24bbe351d699"
