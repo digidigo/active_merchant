@@ -75,7 +75,7 @@ module ActiveMerchant #:nodoc:
         def purchase(money, payment, options={})
 
           post ={}
-          post[:id] = options[:charge_id] if options[:charge_id]
+          post[:id] = options[:id] if options[:id]
           post[:customer_id] = options[:customer_id]
           post[:payment_method_id] = options[:payment_method_id]
           post[:amount] = {}
@@ -119,13 +119,13 @@ module ActiveMerchant #:nodoc:
         end
 
         def refund(money, authorization, options={})
-          reason = options.fetch(:reason, "Refund #{authorization}")
-          options[:uniqueReference] = authorization
 
-          post = {
-            refundAmount: amount(money),
-            refundReason: refund_reason_for(reason)
-          }
+          requires!(options, :charge_id)
+          requires!(options, :reason)
+          requires!(authorization)
+          post = options.merge(idempotency_key: authorization)
+
+          post[:id] = options[:id] if options[:id]
 
           commit(ACTIONS[:refund], post, options)
         end
@@ -428,8 +428,7 @@ module ActiveMerchant #:nodoc:
             requires!(options, :uniqueReference)
             "#{base_url}/transaction/payments/#{options[:uniqueReference]}/capture"
           when ACTIONS[:refund]
-            requires!(options, :uniqueReference)
-            "#{base_url}/transaction/payments/#{options[:uniqueReference]}/refunds"
+            "#{base_url}/refunds"  
           when ACTIONS[:void]
             requires!(options, :uniqueReference)
             "#{base_url}/transaction/payments/#{options[:uniqueReference]}/reverse"
