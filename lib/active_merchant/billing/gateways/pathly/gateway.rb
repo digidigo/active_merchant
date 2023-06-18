@@ -311,16 +311,21 @@ module ActiveMerchant #:nodoc:
             puts "Resposne: \n #{http_response.to_yaml}"  if( test?)
 
             response = parse(http_response)
-            response["request_params"] = parameters
+
+            if( redirect_status?(response))
+              response.merge!('redirect_required' => true)
+              redirect_url = redirect_url_from(response)
+              if(redirect_url)
+                response.merge!('redirect_url' => redirect_url)
+              end
+            end
+            
             response =  Response.new(
               success_from(response),
               message_from(response),
               response,
-              authorization: authorization_from(response),
-              avs_result: AVSResult.new(code: avs_result_from(response)),
-              cvv_result: CVVResult.new(cvv_result_from(response)),
               test: test?,
-              error_code: error_code_from(response)
+              error_code: error_code_from(response),
             )
 
           rescue ActiveMerchant::ResponseError => e
@@ -330,7 +335,7 @@ module ActiveMerchant #:nodoc:
 
             response = Response.new(
                     success_from(response),
-                    message_from(response),
+                    error_message_from(response),
                     response,
                     test: test?,
                     error_code: response['code']
@@ -341,23 +346,28 @@ module ActiveMerchant #:nodoc:
         end
 
         def success_from(response)
-          response && response['status'] == 'success' && response['code'] == 200
+          response && [200,202].include?(response['code'])
+        end
+
+        def redirect_status?(response)
+          response && response['code'] == 202
         end
 
         def message_from(response)
           response['message']
         end
 
-        def authorization_from(response)
-          response['uniqueReference']
+        def error_message_from(response)
+          data = response['data']
+          return response["message"] unless data && data.is_a?(Hash) 
+          data.map do |key,value| 
+            "#{key}: #{value}"
+          end.join(', ')
         end
 
-        def avs_result_from(response)
-          response.dig('securityCheck', 'avsResult')
-        end
-
-        def cvv_result_from(response)
-          response.dig('securityCheck', 'cvvResult')
+        def redirect_url_from(response)
+          data = response['data']
+          response['data']['acs_url'] if data&.is_a?(Hash)
         end
 
         def post_data(action, parameters = {})
@@ -377,9 +387,7 @@ module ActiveMerchant #:nodoc:
         end
 
         def error_code_from(response)
-          unless success_from(response)
-            STANDARD_ERROR_CODE_MAPPING[response.dig('transactionResult', 'resultCode')]
-          end
+          response["error_code"]
         end
 
         def token
