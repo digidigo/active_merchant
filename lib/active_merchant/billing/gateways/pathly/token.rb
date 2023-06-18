@@ -1,7 +1,3 @@
-require 'active_merchant/billing/base'
-require 'active_merchant/posts_data'
-require 'json'
-
 module ActiveMerchant #:nodoc:
   module Billing #:nodoc:
     module Pathly #:nodoc:
@@ -24,7 +20,9 @@ module ActiveMerchant #:nodoc:
         def initialize(options = {})
           @options = options
           @secret_key = options.fetch(:secret_key, nil)
+          @merchant_id = options.fetch(:merchant_id, nil)
           raise ArgumentError("Missing :secret_key!") if @secret_key.nil?
+          raise ArgumentError("Missing :merchant_id!") if @merchant_id.nil?
         end
 
         def fetch
@@ -34,32 +32,28 @@ module ActiveMerchant #:nodoc:
 
         private
 
-        attr_reader :options, :secret_key
+        attr_reader :options, :secret_key, :merchant_id
 
         def fetch_new!
-          response = JSON.parse(ssl_get(url, { Authorization: "Basic #{secret_key}" }))
+          request_body = {
+            merchant_id: merchant_id,
+            key: secret_key
+          }.to_json
 
-          terminal = response['allowedTerminals'][0]
-          raise TerminalMissingError.new if terminal.nil?
+            headers = {
+              "Content-Type" => "application/json",
+               "Accept" => "application/json"
+            }
+          response = JSON.parse(ssl_post(url, request_body,headers))
 
           self.class.token_data[secret_key] = {
-            token: response['token'],
-            terminal: terminal,
-            expires_at: Time.now + Integer(response['expiresIn']) * 3600
+            token: response['data']['token'],
+            expires_at: Time.now + Integer(response['data']['expires_in'])
           }
         end
 
         def url
-          if test?
-            'https://sandbox-api.pathly.io/jwt/token'
-          else
-            'https://api.pathly.io/jwt/token'
-          end
-        end
-
-        # Are we running in test mode?
-        def test?
-          (@options.has_key?(:test) ? @options[:test] : Base.test?)
+          'https://sandbox-api.pathly.io/jwt/token'
         end
 
         def token_expired?

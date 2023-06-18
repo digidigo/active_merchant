@@ -8,22 +8,25 @@ module ActiveMerchant #:nodoc:
         UnsupportedActionError = Class.new(StandardError)
         Invalid3DSVersionError = Class.new(StandardError)
 
-        self.test_url = 'https://testpayments.worldnettps.com/merchant/api/v1'
-        self.live_url = 'https://payments.worldnettps.com/merchant/api/v1'
+        self.test_url = 'https://sandbox-api.pathly.io'
+        self.live_url = 'https://api.pathly.io/'
 
         self.supported_countries = ['US']
         self.default_currency = 'USD'
+        self.money_format = :cents
+
         self.supported_cardtypes = [:visa, :master, :american_express, :discover]
 
-        self.homepage_url = 'http://www.worldnetpayments.com/'
-        self.display_name = 'Worldnet V2'
+        self.homepage_url = 'https://pathly.io/'
+        self.display_name = 'Pathly'
 
         ACTIONS = {
           authorize: 'authorize',
           capture: 'capture',
           purchase: 'purchase',
           refund: 'refund',
-          void: 'void'
+          void: 'void',
+          create_card: 'create_card'
         }
 
         STANDARD_ERROR_CODE_MAPPING = {
@@ -39,41 +42,73 @@ module ActiveMerchant #:nodoc:
         end
 
         def initialize(options={})
-          requires!(options, :merchant_api_key)
+          requires!(options, :secret_key)
+          requires!(options, :merchant_id)
           super
         end
 
+
+  #  {
+  #     "id": charge_id,
+  #     "customer_id": customer_id,
+  #     "payment_method_id": card_id,
+  #     "amount": {
+  #       "value": amount,
+  #       "currency": "USD"
+  #     },
+  #     "shipping_details": {
+  #       "name": "Louis Griffin",
+  #       "address": {
+  #         "country": "US",
+  #         "line1": "Passatge sant pere",
+  #         "line2": "Apartment 2",
+  #         "zip": "83970",
+  #         "city": "Pineda de mar",
+  #         "state": "Barcelona"
+  #       }
+       
+  #   },
+  #    "success_url": "https://example.com/success",
+  #       "fail_url": "https://example.com/failure"      
+  # }     
+
         def purchase(money, payment, options={})
-          requires!(options, :order_id)
 
-          post = {}
-          add_invoice(post, money, options)
-          add_payment(post, payment)
-          add_3ds(post, payment, options)
-          add_address(post, payment, options)
-          add_customer_data(post, options)
+          post ={}
+          post[:id] = options[:charge_id] if options[:charge_id]
+          post[:customer_id] = options[:customer_id]
+          post[:payment_method_id] = options[:payment_method_id]
+          post[:amount] = {}
+          post[:amount][:value] = amount(money).to_i
+          post[:amount][:currency] = options[:currency] || currency(money)
+          post[:shipping_details] = get_address_details(payment, options)
+          post[:success_url] = "https://example.com/success"
+          post[:fail_url] = "https://example.com/failure"
 
-          commit(ACTIONS[:purchase], post)
-        end
+          requires!(post, :customer_id)
+          requires!(post, :payment_method_id)
+          requires!(post, :amount)
+          requires!(post[:amount], :value)
+          requires!(post[:amount], :currency)
+          requires!(post, :shipping_details)
+          requires!(post[:shipping_details], :name)
+          requires!(post[:shipping_details], :address)
+          requires!(post[:shipping_details][:address], :country)
+          requires!(post[:shipping_details][:address], :line1)
+          requires!(post[:shipping_details][:address], :zip)
+          requires!(post[:shipping_details][:address], :city)
+          requires!(post[:shipping_details][:address], :state)
+        
+          begin
+            commit(ACTIONS[:purchase], post, options)
+          rescue ResponseError => e
+            error = JSON.parse(e.response.body)
 
-        def authorize(money, payment, options={})
-          post = {}
+            if e.response.code == '422'
+              puts "error: #{error.to_yaml}"
+            end
+          end
 
-          add_invoice(post, money, options)
-          add_payment(post, payment)
-          add_address(post, payment, options)
-          add_customer_data(post, options)
-
-          commit(ACTIONS[:authorize], post)
-        end
-
-        def capture(money, authorization, options={})
-          options[:http_method] = :patch
-          options[:uniqueReference] = authorization
-
-          post = { captureAmount: amount(money) }
-
-          commit(ACTIONS[:capture], post, options)
         end
 
         def refund(money, authorization, options={})
@@ -95,12 +130,59 @@ module ActiveMerchant #:nodoc:
           commit(ACTIONS[:void], {}, options)
         end
 
-        def verify(credit_card, options={})
-          MultiResponse.run(:use_first_response) do |r|
-            r.process { authorize(100, credit_card, options) }
-            r.process(:ignore_result) { void(r.authorization, options) }
-          end
+# {
+#   "id": "4620ff89-63ea-4b66-8966-49d51f9ca0d5",
+#   "customer_id": "852b5367-ed81-450f-be9e-684a690fe1fe",
+#   "number": "5488888888888888",
+#   "exp_month": "12",
+#   "exp_year": "2025",
+#   "cvv": "123",
+#   "billing_details": {
+#     "name": "Louis Griffin",
+#     "email": "foo@bar.com",
+#     "phone_number": "3036187555",
+#     "address": {
+#       "country": "US",
+#       "line1": "Passatge sant pere",
+#       "line2": "Apartment 2",
+#       "zip": "8397.0",
+#       "city": "Pineda de mar",
+#       "state": "Barcelona"
+#     }
+#   }
+# }        
+        def create_card( payment, options={})
+          post = {}
+          post[:customer_id] = options[:customer_id]
+          #rais and error if customer_id is not present
+          raise ArgumentError.new("customer_id is required") unless post[:customer_id]
+          
+          post[:id] = options[:id] || SecureRandom.uuid
+          
+          post[:number] = payment.number
+          post[:exp_month] = payment.month.to_s.rjust(2, '0')  # => "07"
+
+          post[:exp_year] = payment.year.to_s
+          post[:cvv] = payment.verification_value
+
+          post[:billing_details] = get_address_details(payment, options)
+    
+          commit(ACTIONS[:create_card], post)
         end
+
+ 
+
+        # Specific to Pathly 
+
+        def create_customer(payment, options={})
+          post = {}
+          post[:id] = options[:customer_id] || SecureRandom.uuid
+          post[:first_name] = options[:first_name] || payment&.first_name
+          post[:last_name] = options[:last_name] || payment&.last_name
+
+          commit('customer', post)
+        end
+
 
         def supports_scrubbing?
           false
@@ -112,40 +194,77 @@ module ActiveMerchant #:nodoc:
 
         private
 
-        def add_customer_data(post, options)
-          if options[:email]
-            post[:customer] ||= {}
-            post[:customer][:email] = options[:email]
-          end
+        # def add_customer_data(post, options)
+        #   if options[:email]
+        #     post[:customer] ||= {}
+        #     post[:customer][:email] = options[:email]
+        #   end
 
-          if options[:ip] && (ip = IPAddr.new(options[:ip]) rescue nil)
-            post[:ipAddress] ||= {}
+        #   if options[:ip] && (ip = IPAddr.new(options[:ip]) rescue nil)
+        #     post[:ipAddress] ||= {}
 
-            if ip.ipv4?
-              post[:ipAddress][:ipv4] = options[:ip]
-            elsif ip.ipv6?
-              post[:ipAddress][:ipv6] = options[:ip]
-            end
-          end
-        end
+        #     if ip.ipv4?
+        #       post[:ipAddress][:ipv4] = options[:ip]
+        #     elsif ip.ipv6?
+        #       post[:ipAddress][:ipv6] = options[:ip]
+        #     end
+        #   end
+        # end
 
-        def add_address(post, creditcard, options)
+#        "billing_details": {
+# #     "name": "Louis Griffin",
+# #     "email": "foo@bar.com",
+# #     "phone_number": "3036187555",
+# #     "address": {
+# #       "country": "US",
+# #       "line1": "Passatge sant pere",
+# #       "line2": "Apartment 2",
+# #       "zip": "8397.0",
+# #       "city": "Pineda de mar",
+# #       "state": "Barcelona"
+# #     }
+# #   }
+        def get_address(creditcard, options)
           address = options[:billing_address] || options[:address]
-          return unless address
-
           billing_address = {}
           billing_address[:line1] = address[:address1] if address[:address1]
           billing_address[:line2] = address[:address2] if address[:address2]
           billing_address[:city] = address[:city] if address[:city]
           billing_address[:state] = address[:state] if address[:state]
           billing_address[:country] = address[:country] if address[:country] # ISO 3166-1-alpha-2 code.
-          billing_address[:postalCode] = address[:zip] if address[:zip]
-
-          if billing_address.size > 0
-            post[:customer] ||= {}
-            post[:customer][:billingAddress] = billing_address
-          end
+          billing_address[:zip] = address[:zip] if address[:zip]
+          billing_address
         end
+
+        def get_address_details(creditcard, options)
+          billing_details = {}
+
+          billing_details[:name] = cardholdername(creditcard)
+
+          billing_details[:email] = options[:email] if options[:email]
+          billing_details[:phone_number] = options[:phone_number] if options[:phone_number]
+
+          billing_details[:address] = get_address(creditcard, options)
+          billing_details
+        end
+
+        # def add_address(post, creditcard, options)
+        #   address = options[:billing_address] || options[:address]
+        #   return unless address
+
+        #   billing_address = {}
+        #   billing_address[:line1] = address[:address1] if address[:address1]
+        #   billing_address[:line2] = address[:address2] if address[:address2]
+        #   billing_address[:city] = address[:city] if address[:city]
+        #   billing_address[:state] = address[:state] if address[:state]
+        #   billing_address[:country] = address[:country] if address[:country] # ISO 3166-1-alpha-2 code.
+        #   billing_address[:postalCode] = address[:zip] if address[:zip]
+
+        #   if billing_address.size > 0
+        #     post[:customer] ||= {}
+        #     post[:customer][:billingAddress] = billing_address
+        #   end
+        # end
 
         def add_invoice(post, money, options)
           post[:order] ||= {}
@@ -156,6 +275,7 @@ module ActiveMerchant #:nodoc:
         end
 
         def add_payment(post, payment)
+
           post[:customerAccount] ||= {}
           post[:customerAccount][:payloadType] = 'KEYED'
           post[:customerAccount][:cardholderName] = cardholdername(payment)
@@ -185,27 +305,47 @@ module ActiveMerchant #:nodoc:
         end
 
         def commit(action, parameters, options = {})
-          http_method = options.fetch(:http_method, :post)
-          response = parse(ssl_request(http_method, url_for(action, parameters, options), post_data(action, parameters), standard_request_headers))
+          begin
+            http_method = options.fetch(:http_method, :post)
+            http_response = ssl_request(http_method, url_for(action, parameters, options), post_data(action, parameters), standard_request_headers)
+            puts "Resposne: \n #{http_response.to_yaml}"  if( test?)
 
-          Response.new(
-            success_from(response),
-            message_from(response),
-            response,
-            authorization: authorization_from(response),
-            avs_result: AVSResult.new(code: avs_result_from(response)),
-            cvv_result: CVVResult.new(cvv_result_from(response)),
-            test: test?,
-            error_code: error_code_from(response)
-          )
+            response = parse(http_response)
+            response["request_params"] = parameters
+            response =  Response.new(
+              success_from(response),
+              message_from(response),
+              response,
+              authorization: authorization_from(response),
+              avs_result: AVSResult.new(code: avs_result_from(response)),
+              cvv_result: CVVResult.new(cvv_result_from(response)),
+              test: test?,
+              error_code: error_code_from(response)
+            )
+
+          rescue ActiveMerchant::ResponseError => e
+           
+            puts "Error: \n #{e.to_yaml}"  if( test?)
+            response = parse(e.response&.body)
+
+            response = Response.new(
+                    success_from(response),
+                    message_from(response),
+                    response,
+                    test: test?,
+                    error_code: response['code']
+                  )
+          end
+
+          response
         end
 
         def success_from(response)
-          response.dig('transactionResult', 'resultCode') == 'A'
+          response && response['status'] == 'success' && response['code'] == 200
         end
 
         def message_from(response)
-          response.dig('transactionResult', 'status')
+          response['message']
         end
 
         def authorization_from(response)
@@ -258,8 +398,12 @@ module ActiveMerchant #:nodoc:
           base_url = (test? ? test_url : live_url)
 
           case action
+          when 'customer'
+            "#{base_url}/customers"
+          when 'create_card'
+            "#{base_url}/payment-methods/cards"  
           when ACTIONS[:authorize], ACTIONS[:purchase]
-            "#{base_url}/transaction/payments"
+            "#{base_url}/charges"
           when ACTIONS[:capture]
             requires!(options, :uniqueReference)
             "#{base_url}/transaction/payments/#{options[:uniqueReference]}/capture"
