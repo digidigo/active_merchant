@@ -84,20 +84,27 @@ module ActiveMerchant #:nodoc:
           post[:shipping_details] = get_address_details(payment, options)
           post[:success_url] = "https://example.com/success"
           post[:fail_url] = "https://example.com/failure"
+          if options[:cv2] || options[:dynamic_descriptor]
+            card = { cv2: options[:cv2], dynamic_descriptor: options[:dynamic_descriptor] }
+            post[:card] = card
+          end
 
           requires!(post, :customer_id)
           requires!(post, :payment_method_id)
           requires!(post, :amount)
           requires!(post[:amount], :value)
           requires!(post[:amount], :currency)
-          requires!(post, :shipping_details)
-          requires!(post[:shipping_details], :name)
-          requires!(post[:shipping_details], :address)
-          requires!(post[:shipping_details][:address], :country)
-          requires!(post[:shipping_details][:address], :line1)
-          requires!(post[:shipping_details][:address], :zip)
-          requires!(post[:shipping_details][:address], :city)
-          requires!(post[:shipping_details][:address], :state)
+
+          if( post[:shipping_details])
+            requires!(post, :shipping_details)
+            requires!(post[:shipping_details], :name)
+            requires!(post[:shipping_details], :address)
+            requires!(post[:shipping_details][:address], :country)
+            requires!(post[:shipping_details][:address], :line1)
+            requires!(post[:shipping_details][:address], :zip)
+            requires!(post[:shipping_details][:address], :city)
+            requires!(post[:shipping_details][:address], :state)
+          end
         
           begin
             commit(ACTIONS[:purchase], post, options)
@@ -226,26 +233,31 @@ module ActiveMerchant #:nodoc:
 # #   }
         def get_address(creditcard, options)
           address = options[:billing_address] || options[:address]
+          
           billing_address = {}
-          billing_address[:line1] = address[:address1] if address[:address1]
-          billing_address[:line2] = address[:address2] if address[:address2]
-          billing_address[:city] = address[:city] if address[:city]
-          billing_address[:state] = address[:state] if address[:state]
-          billing_address[:country] = address[:country] if address[:country] # ISO 3166-1-alpha-2 code.
-          billing_address[:zip] = address[:zip] if address[:zip]
-          billing_address
+
+          if( address)
+            billing_address[:line1] = address[:address1] if address[:address1]
+            billing_address[:line2] = address[:address2] if address[:address2]
+            billing_address[:city] = address[:city] if address[:city]
+            billing_address[:state] = address[:state] if address[:state]
+            billing_address[:country] = address[:country] if address[:country] # ISO 3166-1-alpha-2 code.
+            billing_address[:zip] = address[:zip] if address[:zip]
+          end
+          
+          billing_address.empty? ? nil :  billing_address
         end
 
         def get_address_details(creditcard, options)
           billing_details = {}
+          billing_details[:address] = get_address(creditcard, options)
 
           billing_details[:name] = cardholdername(creditcard)
 
           billing_details[:email] = options[:email] if options[:email]
           billing_details[:phone_number] = options[:phone_number] if options[:phone_number]
 
-          billing_details[:address] = get_address(creditcard, options)
-          billing_details
+          billing_details[:address].nil? ? nil :  billing_details
         end
 
         # def add_address(post, creditcard, options)
@@ -319,7 +331,7 @@ module ActiveMerchant #:nodoc:
                 response.merge!('redirect_url' => redirect_url)
               end
             end
-            
+
             response =  Response.new(
               success_from(response),
               message_from(response),

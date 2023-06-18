@@ -19,7 +19,7 @@ class RemotePathlyTest < Test::Unit::TestCase
       billing_address: address,
     }
 
-    @card_id = SecureRandom.uuid
+    @good_card_id = SecureRandom.uuid
     @bad_card_id = SecureRandom.uuid
     @three_ds_card_id = SecureRandom.uuid
 
@@ -59,7 +59,7 @@ class RemotePathlyTest < Test::Unit::TestCase
 
     response = @gateway.create_customer(@good_card,@customer_data)
 
-    response = @gateway.create_card(@good_card, @options.merge({id: @card_id,customer_id: @customer_data[:customer_id] }))
+    response = @gateway.create_card(@good_card, @options.merge({id: @good_card_id,customer_id: @customer_data[:customer_id] }))
     response = @gateway.create_card(@bad_card, @options.merge({id: @bad_card_id,customer_id: @customer_data[:customer_id] }))
     response = @gateway.create_card(@three_ds_card, @options.merge({id: @three_ds_card_id,customer_id: @customer_data[:customer_id] }))
 
@@ -107,7 +107,13 @@ class RemotePathlyTest < Test::Unit::TestCase
   end
 
   def test_successful_purchase
-    response = @gateway.purchase(@amount, @good_card, @options.merge({  payment_method_id: @card_id, customer_id: @customer_data[:customer_id] }))
+    response = @gateway.purchase(@amount, @good_card, @options.merge({  payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] }))
+    assert_success response
+    assert_match /Success.*/, response.message
+  end
+
+  def test_no_shipping_purchase
+    response = @gateway.purchase(@amount, @good_card,{  payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] })
     assert_success response
     assert_match /Success.*/, response.message
   end
@@ -125,6 +131,22 @@ class RemotePathlyTest < Test::Unit::TestCase
     assert_match /pathly/, response.params['data']['acs_url']
     assert_match /pathly/, response.params['redirect_url']
     assert response.params['redirect_required'], 'Redirect required not found'
+  end
+
+  def test_support_cv2_and_dynamic_descriptor
+    options = @options.merge({  payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] })
+    options.merge!({ cv2: '123', dynamic_descriptor: 'Acme Co Inc.' })
+    response = @gateway.purchase(@amount, @good_card, options)
+    assert_success response, "cv2 request success: #{response.inspect}"
+    assert_match /Success.*/, response.message
+  end
+
+  def test_fail_support_cv2_and_dynamic_descriptor
+    options = @options.merge({  payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] })
+    options.merge!({ cv2: 'ABCDEF', dynamic_descriptor: 'Acme Co Inc.' })
+    response = @gateway.purchase(@amount, @good_card, options)
+    assert_failure response, "Expected failure but got: #{response.inspect}"
+    assert_match /Length.*/, response.message
   end
 
 
