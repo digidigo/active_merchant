@@ -6,7 +6,6 @@ module ActiveMerchant #:nodoc:
     module Pathly #:nodoc:
       class Gateway < Gateway
         UnsupportedActionError = Class.new(StandardError)
-        Invalid3DSVersionError = Class.new(StandardError)
 
         self.test_url = 'https://sandbox-api.pathly.io'
         self.live_url = 'https://api.pathly.io/'
@@ -29,13 +28,6 @@ module ActiveMerchant #:nodoc:
           create_card: 'create_card'
         }
 
-        STANDARD_ERROR_CODE_MAPPING = {
-          'D' => Gateway::STANDARD_ERROR_CODE[:card_declined],
-          'E' => nil,
-          'P' => nil,
-          'R' => Gateway::STANDARD_ERROR_CODE[:call_issuer],
-          'C' => nil
-        }
 
         def self.token(options = {})
           Pathly::Token.fetch(options)
@@ -106,15 +98,8 @@ module ActiveMerchant #:nodoc:
             requires!(post[:shipping_details][:address], :state)
           end
         
-          begin
-            commit(ACTIONS[:purchase], post, options)
-          rescue ResponseError => e
-            error = JSON.parse(e.response.body)
-
-            if e.response.code == '422'
-              puts "error: #{error.to_yaml}"
-            end
-          end
+          commit(ACTIONS[:purchase], post, options)
+         
 
         end
 
@@ -174,10 +159,7 @@ module ActiveMerchant #:nodoc:
           commit(ACTIONS[:create_card], post)
         end
 
- 
-
         # Specific to Pathly 
-
         def create_customer(payment, options={})
           post = {}
           post[:id] = options[:customer_id] || SecureRandom.uuid
@@ -197,23 +179,6 @@ module ActiveMerchant #:nodoc:
         end
 
         private
-
-        # def add_customer_data(post, options)
-        #   if options[:email]
-        #     post[:customer] ||= {}
-        #     post[:customer][:email] = options[:email]
-        #   end
-
-        #   if options[:ip] && (ip = IPAddr.new(options[:ip]) rescue nil)
-        #     post[:ipAddress] ||= {}
-
-        #     if ip.ipv4?
-        #       post[:ipAddress][:ipv4] = options[:ip]
-        #     elsif ip.ipv6?
-        #       post[:ipAddress][:ipv6] = options[:ip]
-        #     end
-        #   end
-        # end
 
 #        "billing_details": {
 # #     "name": "Louis Griffin",
@@ -255,58 +220,6 @@ module ActiveMerchant #:nodoc:
           billing_details[:phone_number] = options[:phone_number] if options[:phone_number]
 
           billing_details[:address].nil? ? nil :  billing_details
-        end
-
-        # def add_address(post, creditcard, options)
-        #   address = options[:billing_address] || options[:address]
-        #   return unless address
-
-        #   billing_address = {}
-        #   billing_address[:line1] = address[:address1] if address[:address1]
-        #   billing_address[:line2] = address[:address2] if address[:address2]
-        #   billing_address[:city] = address[:city] if address[:city]
-        #   billing_address[:state] = address[:state] if address[:state]
-        #   billing_address[:country] = address[:country] if address[:country] # ISO 3166-1-alpha-2 code.
-        #   billing_address[:postalCode] = address[:zip] if address[:zip]
-
-        #   if billing_address.size > 0
-        #     post[:customer] ||= {}
-        #     post[:customer][:billingAddress] = billing_address
-        #   end
-        # end
-
-        def add_invoice(post, money, options)
-          post[:order] ||= {}
-          post[:order][:orderId] = options[:order_id]
-          post[:order][:currency] = (options[:currency] || currency(money))
-          post[:order][:totalAmount] = amount(money)
-          post[:order][:description] = description_for(options[:description]) if options[:description]
-        end
-
-        def add_payment(post, payment)
-
-          post[:customerAccount] ||= {}
-          post[:customerAccount][:payloadType] = 'KEYED'
-          post[:customerAccount][:cardholderName] = cardholdername(payment)
-
-          post[:customerAccount][:cardDetails] ||= {}
-          post[:customerAccount][:cardDetails][:cardNumber] = payment.number
-          post[:customerAccount][:cardDetails][:expiryDate] = expdate(payment)
-          post[:customerAccount][:cardDetails][:cvv] = payment.verification_value if payment.verification_value
-        end
-
-        def add_3ds(post, payment, options)
-          if options[:three_d_secure]
-            requires!(options[:three_d_secure], :eci)
-
-            post[:threeDSecure] ||= {}
-            post[:threeDSecure][:serviceProvider] = 'THIRD_PARTY'
-            post[:threeDSecure][:eci] = options[:three_d_secure][:eci]
-            post[:threeDSecure][:xid] = xid_for(options[:three_d_secure][:xid]) if options[:three_d_secure][:xid]
-            post[:threeDSecure][:cavv] = cavv_for(options[:three_d_secure][:cavv]) if options[:three_d_secure][:cavv]
-            post[:threeDSecure][:protocolVersion] = protocol_version_for(options[:three_d_secure][:version]) if options[:three_d_secure][:version]
-            post[:threeDSecure][:dsTransactionId] = ds_transaction_id_for(options[:three_d_secure][:ds_transaction_id]) if options[:three_d_secure][:ds_transaction_id]
-          end
         end
 
         def parse(body)
@@ -380,18 +293,6 @@ module ActiveMerchant #:nodoc:
         end
 
         def post_data(action, parameters = {})
-          case action
-          when ACTIONS[:authorize]
-            parameters[:channel] = 'WEB'
-            parameters[:terminal] = token[:terminal]
-            parameters[:autoCapture] = false
-          when ACTIONS[:purchase]
-            parameters[:channel] = 'WEB'
-            parameters[:terminal] = token[:terminal]
-            parameters[:autoCapture] = true
-            parameters[:processAsSale] = true
-          end
-
           JSON.dump(parameters)
         end
 
@@ -405,10 +306,6 @@ module ActiveMerchant #:nodoc:
 
         def cardholdername(payment, max_length = 60)
           [payment.first_name, payment.last_name].join(' ').slice(0, max_length)
-        end
-
-        def expdate(payment)
-          sprintf('%02d%02d', payment.month, payment.year % 100)
         end
 
         def url_for(action, parameters, options = {})
@@ -440,34 +337,11 @@ module ActiveMerchant #:nodoc:
         end
 
         def description_for(description)
-          description.slice(0, 1024)
+          description.slice(0, 255)
         end
 
         def refund_reason_for(reason)
           reason.slice(0, 100)
-        end
-
-        def xid_for(xid)
-          xid.slice(0, 50)
-        end
-
-        def cavv_for(cavv)
-          cavv.slice(0, 50)
-        end
-
-        def protocol_version_for(version)
-          case version
-          when /2\..+/
-            'VERSION_2'
-          when /1\..+/
-            'VERSION_1'
-          else
-            raise Invalid3DSVersionError
-          end 
-        end
-
-        def ds_transaction_id_for(ds_transaction_id)
-          ds_transaction_id.slice(0, 36)
         end
       end
     end
