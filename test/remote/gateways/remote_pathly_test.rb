@@ -134,6 +134,20 @@ class RemotePathlyTest < Test::Unit::TestCase
     assert_match /.*#{charge_id}.*/, response.message
   end
 
+    def test_void
+    charge_id = SecureRandom.uuid
+
+    response = @gateway.purchase(@amount, @good_card, @options.merge({ id: charge_id, payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] }))
+    assert_success response
+    assert_match /Success.*/, response.message
+
+    auth_id = SecureRandom.uuid
+    response = @gateway.void(auth_id, { charge_id: charge_id, reason: 'duplicate' })
+    assert_success response
+    assert_match /Success.*/, response.message
+
+  end
+
   def test_no_shipping_purchase
     response = @gateway.purchase(@amount, @good_card,{  payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] })
     assert_success response

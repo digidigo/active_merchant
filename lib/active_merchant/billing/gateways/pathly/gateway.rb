@@ -131,10 +131,7 @@ module ActiveMerchant #:nodoc:
         end
 
         def void(authorization, options={})
-          options[:http_method] = :patch
-          options[:uniqueReference] = authorization
-
-          commit(ACTIONS[:void], {}, options)
+          refund(0, authorization, options)
         end
 
 # {
@@ -422,16 +419,12 @@ module ActiveMerchant #:nodoc:
             "#{base_url}/customers"
           when 'create_card'
             "#{base_url}/payment-methods/cards"  
-          when ACTIONS[:authorize], ACTIONS[:purchase]
+          when ACTIONS[:purchase]
             "#{base_url}/charges"
-          when ACTIONS[:capture]
-            requires!(options, :uniqueReference)
-            "#{base_url}/transaction/payments/#{options[:uniqueReference]}/capture"
           when ACTIONS[:refund]
             "#{base_url}/refunds"  
           when ACTIONS[:void]
-            requires!(options, :uniqueReference)
-            "#{base_url}/transaction/payments/#{options[:uniqueReference]}/reverse"
+            "#{base_url}/refunds"  
           else
             raise UnsupportedActionError.new(action)
           end
