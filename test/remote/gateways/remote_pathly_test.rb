@@ -7,7 +7,7 @@ class RemotePathlyTest < Test::Unit::TestCase
   def setup
     @gateway = PathlyGateway.new(fixtures(:pathly))
 
-    @amount = 100
+    @amount = 1000
     
     @good_card = credit_card('5488888888888888')
     @bad_card = credit_card('5413131313131313')
@@ -58,9 +58,9 @@ class RemotePathlyTest < Test::Unit::TestCase
 
     response = @gateway.create_customer(@good_card,@customer_data)
 
-    response = @gateway.create_card(@good_card, @options.merge({id: @good_card_id,customer_id: @customer_data[:customer_id] }))
-    response = @gateway.create_card(@bad_card, @options.merge({id: @bad_card_id,customer_id: @customer_data[:customer_id] }))
-    response = @gateway.create_card(@three_ds_card, @options.merge({id: @three_ds_card_id,customer_id: @customer_data[:customer_id] }))
+    response = @gateway.create_card(@good_card, @options.merge({card_id: @good_card_id,customer_id: @customer_data[:customer_id] }))
+    response = @gateway.create_card(@bad_card, @options.merge({card_id: @bad_card_id,customer_id: @customer_data[:customer_id] }))
+    response = @gateway.create_card(@three_ds_card, @options.merge({card_id: @three_ds_card_id,customer_id: @customer_data[:customer_id] }))
 
     @failed_customer_data = @customer_data.merge({ customer_id: 'invalid'})
   end
@@ -77,7 +77,8 @@ class RemotePathlyTest < Test::Unit::TestCase
   end
 
  def test_create_card
-    response = @gateway.create_card(@good_card, @options.merge({customer_id: @customer_data[:customer_id] }))
+    card_id = SecureRandom.uuid
+    response = @gateway.create_card(@good_card, @options.merge({card_id: card_id,customer_id: @customer_data[:customer_id] }))
     assert_success response, "Expected success but got: #{response.inspect}"
   end
 
@@ -111,6 +112,14 @@ class RemotePathlyTest < Test::Unit::TestCase
     assert_match /Success.*/, response.message
   end
 
+  def test_purchase_creates_customer_and_card_when_cvv_present
+    customer_id = SecureRandom.uuid
+    card_id = SecureRandom.uuid
+    response = @gateway.purchase(@amount, @good_card, @options.merge({  payment_method_id: card_id, customer_id: customer_id }))
+    assert_success response
+    assert_match /Success.*/, response.message
+  end
+
   def test_refund
     charge_id = SecureRandom.uuid
 
@@ -134,7 +143,7 @@ class RemotePathlyTest < Test::Unit::TestCase
     assert_match /.*#{charge_id}.*/, response.message
   end
 
-    def test_void
+  def test_void
     charge_id = SecureRandom.uuid
 
     response = @gateway.purchase(@amount, @good_card, @options.merge({ id: charge_id, payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] }))
@@ -148,7 +157,7 @@ class RemotePathlyTest < Test::Unit::TestCase
 
   end
 
-  def test_no_shipping_purchase
+  def test_purchase_no_shipping_purchase
     response = @gateway.purchase(@amount, @good_card,{  payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] })
     assert_success response
     assert_match /Success.*/, response.message
@@ -169,7 +178,7 @@ class RemotePathlyTest < Test::Unit::TestCase
     assert response.params['redirect_required'], 'Redirect required not found'
   end
 
-  def test_support_cv2_and_dynamic_descriptor
+  def test_purchase_support_cv2_and_dynamic_descriptor
     options = @options.merge({  payment_method_id: @good_card_id, customer_id: @customer_data[:customer_id] })
     options.merge!({ cv2: '123', dynamic_descriptor: 'Acme Co Inc.' })
     response = @gateway.purchase(@amount, @good_card, options)

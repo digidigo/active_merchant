@@ -66,6 +66,13 @@ module ActiveMerchant #:nodoc:
 
         def purchase(money, payment, options={})
 
+          if( payment.verification_value ) 
+            # create customer and card with given customer id and card id
+            create_customer(payment, options)
+            create_card(payment, options.merge(card_id: options[:payment_method_id]))
+          end
+
+
           post ={}
           post[:id] = options[:id] if options[:id]
           post[:customer_id] = options[:customer_id]
@@ -139,14 +146,14 @@ module ActiveMerchant #:nodoc:
 #       "state": "Barcelona"
 #     }
 #   }
-# }        
+# }         `
         def create_card( payment, options={})
           post = {}
           post[:customer_id] = options[:customer_id]
           #rais and error if customer_id is not present
           raise ArgumentError.new("customer_id is required") unless post[:customer_id]
           
-          post[:id] = options[:id] || SecureRandom.uuid
+          post[:id] = options[:card_id] || SecureRandom.uuid
           
           post[:number] = payment.number
           post[:exp_month] = payment.month.to_s.rjust(2, '0')  # => "07"
