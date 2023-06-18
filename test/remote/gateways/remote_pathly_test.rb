@@ -120,6 +120,14 @@ class RemotePathlyTest < Test::Unit::TestCase
     assert_match /Success.*/, response.message
   end
 
+  def test_purchase_creates_customer_and_card_when_cvv_present
+    customer_id = SecureRandom.uuid
+    card_id = SecureRandom.uuid
+    response = @gateway.purchase(@amount, @good_card, @options.merge({  payment_method_id: card_id, customer_id: customer_id }))
+    assert_success response
+    assert_match /Success.*/, response.message
+  end
+
   def test_refund
     charge_id = SecureRandom.uuid
 

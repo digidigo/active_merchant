@@ -68,8 +68,8 @@ module ActiveMerchant #:nodoc:
 
           if( payment.verification_value ) 
             # create customer and card with given customer id and card id
-            create_customer(payment, options)
-            create_card(payment, options.merge(card_id: options[:payment_method_id]))
+            create_customer(payment, options) rescue nil
+            create_card(payment, options.merge(card_id: options[:payment_method_id])) rescue nil
           end
 
 
